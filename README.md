@@ -6,7 +6,7 @@ With lossy compression, the encoder successfully made it under the 128 KiB chip 
 
 ![Demo on MCU](chip_demo/demo.gif)
 
-There is also a demo program to display the video using ASCII art in unix console.
+There is also a demo program to display the video using ASCII art in UNIX console.
 
 ## Details
 

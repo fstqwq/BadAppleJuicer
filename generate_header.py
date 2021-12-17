@@ -76,14 +76,14 @@ def output_huffman(data, f):
     f.write("short huff[][2] = {")
     for i in range(257, node + 1):
         f.write(f"{{{edges[i][0]}, {edges[i][1]}}}, ")
-    f.write('};')
+    f.write('};\n')
     f.write('uint8_t video[] = {\n')
     for i in range(0, len(bitarr), 8):
         byte = 0
         for j in range(min(8, len(bitarr) - i)):
             byte |= bitarr[i + j] << j
         f.write(f"{byte},")
-    f.write('};')
+    f.write('};\n')
 
 target_size = 125 * 1024
 
