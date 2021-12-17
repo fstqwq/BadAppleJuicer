@@ -1,7 +1,5 @@
 # Bad Apple Juicer
 
-## Description
-
 Encode the Bad Apple video in order to decode and display on a microcontroller unit, see `examples/img-test` of [cla7aye15I4nd/awesome-mcu](https://github.com/cla7aye15I4nd/awesome-mcu). 
 
 With lossy compression, the encoder successfully made it under the 128 KiB chip limit to display the 3min39s video in 86 \* 64 \* 8 fps. Lossless compression of 86 \* 64 \* 24 fps costs 465 KiB, which is only 13% of original byte array.
@@ -14,7 +12,7 @@ There is also a demo program to display the video using ASCII art in unix consol
 
 ### Requirements
 
-If you wish to directly generate headers from video file, you have to install `ffmpeg` and `ffmpy` to decode videos. However, the converted `gif` file is included in `video/`, so you can generate from `gif` directly with some subtle changes of code which only relies on `PIL`.
+If you wish to directly generate headers from video file, you have to install `ffmpeg` and `ffmpy` to decode videos. However, the converted `gif` file is included in `video/`, so you can generate from `gif` directly which only relies on `PIL`.
 
 ### How to generate another compression level
 
