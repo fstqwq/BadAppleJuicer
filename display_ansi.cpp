@@ -16,7 +16,7 @@ uint8_t get_next_byte();
 void reset_decoder();
 uint8_t decode_EOF();
 
-const int width = 86, height = 64, interlace = 2, skip = 3;
+const int width = 86, height = 64, interlace = 2, skip = 3, locality = 1;
 
 int main() {
 	oled_init();
@@ -31,14 +31,14 @@ int main() {
 		auto dtn = chrono::system_clock::now().time_since_epoch().count();
 		while (!decode_EOF())
 		{
-			int wstart = frame % interlace;
-			for (; wstart < width; wstart += 8 * interlace) {
+			frame++;
+			for (int wstart = frame % interlace; wstart < width; wstart += 8 * interlace * locality) {
 				uint8_t wmask = get_next_byte();
-				int wend = wstart + 8 * interlace;
+				int wend = wstart + 8 * interlace * locality;
 				if (wend > width)
 					wend = width;
 				for (int wrow = 0; wstart + wrow < wend; wrow += interlace) {
-					if ((wmask >> (wrow / interlace)) & 1) {
+					if ((wmask >> (wrow / interlace / locality)) & 1) {
 						int i = wstart + wrow;
 						uint8_t mask = get_next_byte();
 						for (int j = 0; j < 8; j++) {
@@ -50,7 +50,6 @@ int main() {
 					}
 				}
 			}
-			frame++;
             while (chrono::system_clock::now().time_since_epoch().count() - dtn < 41666666ll * frame * skip) {
             	printf("\033[33;H%2.3lf", (chrono::system_clock::now().time_since_epoch().count() - dtn) / 1e9);
             	fflush(stdout);
@@ -60,6 +59,7 @@ int main() {
 	}
 }
 
+uint8_t oled[86][8];
 
 void oled_init() {
     printf("\033[2J");
@@ -70,6 +70,7 @@ void oled_clear() {
 }
 
 void oled_write_byte(uint8_t x, uint8_t y, uint8_t chunk) {
+	oled[x][y] = chunk;
     y *= 4;
     for (int j = 0; j < 8; j += 2) {
         uint8_t d1 = (chunk >> j) & 1, d2 = (chunk >> (j + 1)) & 1;

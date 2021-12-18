@@ -7,7 +7,7 @@ from queue import PriorityQueue
 from PIL import Image
 
 TMP_DIR = 'tmp'
-width, height, interlace, skip = 86, 64, 2, 3
+width, height, interlace, skip, locality = 86, 64, 2, 3, 1
 
 def create_workspace():
     if os.path.exists(TMP_DIR):
@@ -70,7 +70,7 @@ def output_huffman(data, f):
         for j in bitrep[i]:
             bitarr.append(j)
     data.pop()
-    print(f"bitarr size = {len(bitarr) // 8}, data size = {len(data)}, com ratio = {len(bitarr) / len(data) / 8}")
+    print(f"\nbitarr size = {len(bitarr) // 8}, data size = {len(data)}, com ratio = {len(bitarr) / len(data) / 8}")
 
     f.write(f"short huff_rt = {rt};\n")
     f.write("short huff[][2] = {")
@@ -101,13 +101,16 @@ def split_video(video_dir):
 
     data = []
     with open('badapple.h', 'w') as f:
+        max_data = 0
+        min_data = 1000
+        tot_data = 0
         while True or len(data) < target_size * 1.45 or check_size(data) < target_size - 4096:
+            st = len(data)
             try:
                 frame = im.tell()
                 png_dir = os.path.join(TMP_DIR, f'bad.png')
 
                 image_id += 1 
-                print(image_id, end='\r')
                 im.save(png_dir)
                 im.seek(frame + 1)
                 
@@ -123,18 +126,18 @@ def split_video(video_dir):
                         assert (ch < 256)
                         chs.append(ch)
 
-                    for ws in range(image_id // skip % interlace, width, interlace * 8):
-                        wsend = min(ws + interlace * 8, width)
+                    for ws in range(image_id // skip % interlace, width, interlace * locality * 8):
+                        wsend = min(ws + interlace * locality * 8, width)
                         cw = 0
 
                         for w in range(ws, wsend, interlace):
                             if chs[w // interlace] != 0:
-                                cw |= 1 << ((w - ws) // interlace)
+                                cw |= 1 << ((w - ws) // locality // interlace)
 
                         data.append(cw)
 
                         for w in range(ws, wsend, interlace):
-                            if chs[w // interlace] != 0:
+                            if (cw & (1 << ((w - ws) // locality // interlace))) != 0:
                                 data.append(chs[w // interlace])
 
                                 for h in range(0, height, 8):
@@ -149,7 +152,14 @@ def split_video(video_dir):
 
                                 for h in range(height):
                                     screen[h][w] = img[h][w]
-                
+                            else:
+                                for h in range(height):
+                                    assert screen[h][w] == img[h][w]
+                frame_size = len(data) - st
+                max_data = max(max_data, frame_size)
+                min_data = min(min_data, frame_size)
+                tot_data += frame_size
+                print(f"{image_id:4d}\tsize={frame_size:4d}\t\tmax={max_data:4d}\tmin={min_data:4d}\tavg={tot_data/image_id:3f}", end='\r')
             except EOFError:
                 break
         output_huffman(data, f)

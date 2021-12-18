@@ -22,6 +22,7 @@ Modify the following parameters in both encoder and decoder:
 
 * `interlace`: Each column is refreshed per `interlace` frames. Set to 1 if no interlacing is needed.
 * `skip`: Keep one frame in every `skip` frames. Set to 1 if no skipping is needed.
+* `locality`: Merge the bitmap of every `locality` columns. When `skip` and `interlace` are low, it can reduce a small fraction of metadata size.
 
 ### Technical details of compression
 
